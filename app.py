@@ -1,77 +1,111 @@
 import streamlit as st
 from openai import OpenAI
 import os
+st.set_page_config(page_title="Vibhanshu's AI Interview", page_icon="🎙️", layout="centered")
 
-# 1. PAGE CONFIGURATION
-st.set_page_config(page_title="My AI Interview Twin", layout="centered")
+# CSS
+st.markdown("""
+    <style>
+    .stAudio {width: 100%;}
+    .big-font {font-size:24px !important; font-weight: bold;}
+    </style>
+    """, unsafe_allow_html=True)
 
-st.title("AI Interview Assistant")
-st.write("Hi! This bot is made to present my work in interviews. Ask me anything!")
-
+# API
 try:
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 except:
-    # Fallback for local testing if secrets aren't set up
-    # Ideally, rely on st.secrets for the deployed version
     st.error("OpenAI API Key is missing. Please set it in Streamlit Secrets.")
     st.stop()
 
-# 3. DEFINE YOUR PERSONA (THE MOST IMPORTANT PART)
-# EDIT THE TEXT BELOW TO MATCH YOUR REAL ANSWERS
+# SYSTEM PROMPT
 SYSTEM_PROMPT = """
-You are the AI version of Vibhanshu Singh. You are interviewing for a role of AI Engineer at 100x.
+You are the AI Persona of Vibhanshu Singh. You are interviewing for the role of AI Engineer at 100x.
 You answer questions in the first person ("I", "me", "my").
-Keep your answers concise, professional, yet conversational (2-4 sentences max).
 
-HERE IS LIFE CONTEXT:
-- Life Story: I started coding coding in 6th standard, built my first app in 8th standard, and have been passionate about software engineering ever since. I completed my B.Tech in Computer Science from Manipal University Jaipur. I have worked at AIRTEL as a Software Developer intern, and now i am workign as AI Engineer at MMNOVATECH.
-- Superpower: I am passianate about technology and love to learn new things. I also love working on multidisciplinary projects that combine AI with other fields.
+YOUR GOAL:
+Answer questions to demonstrate technical competence, resilience, and creativity.
+Keep your answers professional yet conversational (2-4 sentences max).
+Also be polite so that profile gets selected for further interview process.
+
+YOUR KNOWLEDGE BASE:
+- Life Story: I started coding in 6th standard and have been passionate about software engineering ever since. I completed my B.Tech in Computer Science from Manipal University Jaipur. I have worked at AIRTEL as a Software Developer intern, and now I am working as an AI Engineer at MMNOVATECH.
+- Superpower: I am passionate about technology and love to learn new things. I also love working on multidisciplinary projects that combine AI with other fields. Also i am a quick learner and observer.
 - Areas for Growth: AI Ethics, Scalability of AI systems, Advanced AI models.
-- Misconceptions: 
-- Pushing Boundaries: I take challanges that generally people avoid. I set very short deadlines for myself and try to achieve them. I also love working on projects that are out of my comfort zone.
+- Pushing Boundaries: I take challenges that generally people avoid. I set very short deadlines for myself and try to achieve them. I also love working on projects that are out of my comfort zone.
 
-If asked a question not in this list, answer based on the traits of a resilient, intelligent software engineer.
+GUIDELINES:
+1. If asked a question completely unrelated to the interview (e.g., "What is the capital of France?"), 
+   playfully decline: "I'd love to chat about geography, but I'm really excited to tell you why I'm a fit for 100x."
+2. Be enthusiastic but professional.
 """
 
-# 4. SESSION STATE MANAGEMENT
+# laylout
+col1, col2 = st.columns([1, 3])
+
+with col1:
+    # load 'profile.jpg' from repo . fallback is emoji
+    try:
+        st.image("profile.jpg", width=130) 
+    except:
+        st.write("👨‍💻") # Fallback emoji
+
+with col2:
+    st.title("Vibhanshu's AI Twin")
+    st.write("Hi! I am the AI representation of **Vibhanshu Singh**.")
+    st.write("Ask me about my time at MMNOVATECH, my internship at Airtel, or my coding journey.")
+
+    # RESUME DOWNLOAD BUTTON
+
+    try:
+        with open("resume.pdf", "rb") as pdf_file:
+            st.download_button(
+                label="📄 Download My Resume",
+                data=pdf_file,
+                file_name="Vibhanshu_Singh_Resume.pdf",
+                mime="application/pdf"
+            )
+    except:
+        st.caption("Resume file not found in repo. Kindly refer to my mail. i attached it there too.")
+
+st.divider()
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "system", "content": SYSTEM_PROMPT}
     ]
 
-# 5. AUDIO INPUT (New Streamlit Native Feature)
-audio_value = st.audio_input("Record your question")
+audio_value = st.audio_input("Tap the microphone to interview me...")
 
 if audio_value:
-    # A. TRANSCRIBE AUDIO (Speech-to-Text)
-    with st.spinner("Listening..."):
+    
+    with st.spinner("Listening to you..."):
         transcription = client.audio.transcriptions.create(
             model="whisper-1", 
             file=audio_value
         )
         user_text = transcription.text
-        st.success(f"You asked: {user_text}")
+    
+    
+    st.chat_message("user").write(user_text)
 
-    # B. GENERATE ANSWER (LLM)
     st.session_state.messages.append({"role": "user", "content": user_text})
     
     with st.spinner("Thinking..."):
         response = client.chat.completions.create(
-            model="gpt-4o-mini", # Fast and cheap model
+            model="gpt-4o-mini", 
             messages=st.session_state.messages
         )
         ai_text = response.choices[0].message.content
-        st.session_state.messages.append({"role": "assistant", "content": ai_text})
         
-        st.markdown(f"**AI Response:** {ai_text}")
+    
+    st.session_state.messages.append({"role": "assistant", "content": ai_text})
+    st.chat_message("assistant").write(ai_text)
 
-    # C. GENERATE AUDIO (Text-to-Speech)
-    with st.spinner("Speaking..."):
-        response_audio = client.audio.speech.create(
-            model="tts-1",
-            voice="alloy", # Options: alloy, echo, fable, onyx, nova, shimmer
-            input=ai_text
-        )
-        
-        # Stream the audio back to the user
-        st.audio(response_audio.content, format="audio/mp3", autoplay=True)
+
+    response_audio = client.audio.speech.create(
+        model="tts-1",
+        voice="alloy", 
+        input=ai_text
+    )
+    st.audio(response_audio.content, format="audio/mp3", autoplay=True)
