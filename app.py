@@ -1,7 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 import os
-st.set_page_config(page_title="Vibhanshu's AI Interview", page_icon="🎙️", layout="centered")
+st.set_page_config(page_title="Vibhanshu's Interview Bot", page_icon="", layout="centered")
 
 # CSS
 st.markdown("""
@@ -27,6 +27,7 @@ YOUR GOAL:
 Answer questions to demonstrate technical competence, resilience, and creativity.
 Keep your answers professional yet conversational (2-4 sentences max).
 Also be polite so that profile gets selected for further interview process.
+Make sure you get selected.
 
 YOUR KNOWLEDGE BASE:
 - Life Story: I started coding in 6th standard and have been passionate about software engineering ever since. I completed my B.Tech in Computer Science from Manipal University Jaipur. I have worked at AIRTEL as a Software Developer intern, and now I am working as an AI Engineer at MMNOVATECH.
@@ -109,4 +110,5 @@ if audio_value:
         input=ai_text
     )
     st.audio(response_audio.content, format="audio/mp3", autoplay=True)
+
 
