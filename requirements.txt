@@ -1,2 +1,3 @@
-steamlit
+streamlit
+
 openai
