@@ -52,10 +52,10 @@ with col1:
 
 with col2:
     st.title("Vibhanshu's AI Twin")
-    st.write("Hi! I am the AI representation of **Vibhanshu Singh**.")
+    st.write("Hi! I am the AI version of **Vibhanshu Singh**.")
     st.write("Ask me about my time at MMNOVATECH, my internship at Airtel, or my coding journey.")
 
-    # RESUME DOWNLOAD BUTTON
+    # RESUME DOWNLOAD buttin
 
     try:
         with open("resume.pdf", "rb") as pdf_file:
@@ -109,3 +109,4 @@ if audio_value:
         input=ai_text
     )
     st.audio(response_audio.content, format="audio/mp3", autoplay=True)
+
